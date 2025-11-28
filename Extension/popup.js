@@ -1,8 +1,9 @@
 // Popup script for Link Collector extension
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Load and display stats
+  // Load and display stats and links
   updateStats();
+  loadLinks();
   
   // Download button
   document.getElementById('downloadBtn').addEventListener('click', function() {
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Refresh button
   document.getElementById('refreshBtn').addEventListener('click', function() {
     updateStats();
+    loadLinks();
     showStatus('Stats refreshed!', 'success');
   });
   
@@ -27,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
       chrome.runtime.sendMessage({ action: 'clearLinks' }, (response) => {
         if (response && response.success) {
           updateStats();
+          loadLinks();
           showStatus('All links cleared!', 'success');
         } else {
           showStatus('Error clearing links', 'error');
@@ -51,6 +54,37 @@ function updateStats() {
         document.getElementById('lastUpdate').textContent = 'Never';
       }
     }
+  });
+}
+
+// Function to load and display all links
+function loadLinks() {
+  chrome.storage.local.get(['links'], (data) => {
+    const links = data.links || [];
+    const container = document.getElementById('linksContainer');
+    
+    // Clear container
+    container.innerHTML = '';
+    
+    if (links.length === 0) {
+      container.innerHTML = '<div class="no-links">No links collected yet. Visit some websites to start collecting!</div>';
+      return;
+    }
+    
+    // Display all links
+    links.forEach((link, index) => {
+      const linkItem = document.createElement('div');
+      linkItem.className = 'link-item';
+      
+      const linkElement = document.createElement('a');
+      linkElement.href = link;
+      linkElement.textContent = link;
+      linkElement.target = '_blank';
+      linkElement.title = link;
+      
+      linkItem.appendChild(linkElement);
+      container.appendChild(linkItem);
+    });
   });
 }
 
